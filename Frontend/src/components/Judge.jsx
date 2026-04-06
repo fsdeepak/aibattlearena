@@ -111,11 +111,11 @@ export default function JudgePanel({ judge, loading, hasResult }) {
             {/* Reasoning */}
             <div className="divider-label">Reasoning</div>
             <div className="reasoning-card reasoning-alpha">
-              <div className="reasoning-title">Model Alpha</div>
+              <div className="reasoning-title">Model 1</div>
               <div className="reasoning-text">{judge.solution_1_reasoning}</div>
             </div>
             <div className="reasoning-card reasoning-beta">
-              <div className="reasoning-title">Model Beta</div>
+              <div className="reasoning-title">Model 2</div>
               <div className="reasoning-text">{judge.solution_2_reasoning}</div>
             </div>
           </div>

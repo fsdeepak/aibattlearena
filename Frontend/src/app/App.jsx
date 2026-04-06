@@ -3,6 +3,7 @@ import { useState, useRef } from "react";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 import SolutionPanel from "../components/SolutionPanel";
 import JudgePanel from "../components/Judge";
+import axios from "axios";
 
 const DEMO_DATA = {
   problem: "Write an code for Factorial function in js",
@@ -37,9 +38,15 @@ const App = () => {
       // const res = await fetch("/api/battle", { method: "POST", body: JSON.stringify({ problem }), headers: { "Content-Type": "application/json" } });
       // const data = await res.json();
 
-      // Simulate network delay with demo data
-      await new Promise((r) => setTimeout(r, 1800));
-      setResult({ ...DEMO_DATA, problem });
+      const response = await axios.post("http://localhost:3000/invoke", {
+        input: problem,
+      });
+      const data = response.data;
+
+      console.log(data.result);
+
+      setResult(data.result);
+      setProblem("");
     } catch (err) {
       console.error("Battle failed:", err);
     } finally {

@@ -1,9 +1,46 @@
+# =========================
+# Dependencies
+# =========================
 node_modules/
+
+# =========================
+# Environment Variables (Secrets)
+# =========================
 .env
 .env.local
 .env.*.local
+
+# Allow example env file
+!.env.example
+
+# =========================
+# Logs
+# =========================
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# =========================
+# Build / Production Output
+# =========================
 dist/
 build/
+
+# =========================
+# OS / System Files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# IDE / Editor Files
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# Misc
+# =========================
+coverage/
