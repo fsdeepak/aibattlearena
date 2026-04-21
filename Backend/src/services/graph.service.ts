@@ -8,11 +8,13 @@ import {
   StateGraph,
 } from "@langchain/langgraph";
 import { z } from "zod";
-import { googleModel, mistralModel, cohereModel } from "./modes.service.js";
+import { modelFactory, judgeModel } from "./modes.service.js";
 import { HumanMessage, createAgent, providerStrategy } from "langchain";
 
 const state = new StateSchema({
   problem: z.string().default(""),
+  m1_config: z.object({ provider: z.string(), name: z.string() }),
+  m2_config: z.object({ provider: z.string(), name: z.string() }),
   solution_1: z.string().default(""),
   solution_2: z.string().default(""),
   judge: z.object({
@@ -24,14 +26,17 @@ const state = new StateSchema({
 });
 
 const solutionNode: GraphNode<typeof state> = async (state) => {
-  const [mistralResponse, cohereResponse] = await Promise.all([
-    mistralModel.invoke(state.problem),
-    cohereModel.invoke(state.problem),
+  const model1 = modelFactory(state.m1_config.provider, state.m1_config.name);
+  const model2 = modelFactory(state.m2_config.provider, state.m2_config.name);
+
+  const [model1Response, model2Response] = await Promise.all([
+    model1.invoke(state.problem),
+    model2.invoke(state.problem),
   ]);
 
   return {
-    solution_1: mistralResponse.text,
-    solution_2: cohereResponse.text,
+    solution_1: model1Response.text,
+    solution_2: model2Response.text,
   };
 };
 
@@ -39,7 +44,7 @@ const judgeNode: GraphNode<typeof state> = async (state) => {
   const { problem, solution_1, solution_2 } = state;
 
   const judge = createAgent({
-    model: googleModel,
+    model: judgeModel,
     responseFormat: providerStrategy(
       z.object({
         solution_1_score: z.number().min(0).max(10),
@@ -87,9 +92,11 @@ const graph = new StateGraph(state)
   .addEdge("judge_node", END)
   .compile();
 
-export default async function (problem: string) {
+export default async function (problem: string, m1: any, m2: any) {
   const result = await graph.invoke({
     problem: problem,
+    m1_config: m1,
+    m2_config: m2,
   });
 
   return result;

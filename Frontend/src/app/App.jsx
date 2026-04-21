@@ -1,24 +1,23 @@
 import "./App.css";
 import { useState, useRef } from "react";
-import { MarkdownRenderer } from "./MarkdownRenderer";
 import SolutionPanel from "../components/SolutionPanel";
 import JudgePanel from "../components/Judge";
 import axios from "axios";
 
-const DEMO_DATA = {
-  problem: "Write an code for Factorial function in js",
-  solution_1:
-    'Here\'s a JavaScript function to calculate the factorial of a number using both **iterative** and **recursive** approaches:\n\n### 1. **Iterative Approach (Using a Loop)**\n```javascript\nfunction factorialIterative(n) {\n    if (n < 0) return "Factorial is not defined for negative numbers";\n    if (n === 0 || n === 1) return 1;\n\n    let result = 1;\n    for (let i = 2; i <= n; i++) {\n        result *= i;\n    }\n    return result;\n}\n\nconsole.log(factorialIterative(5)); // Output: 120\n```\n\n### 2. **Recursive Approach (Function calls itself)**\n```javascript\nfunction factorialRecursive(n) {\n    if (n < 0) return "Factorial is not defined for negative numbers";\n    if (n === 0 || n === 1) return 1;\n\n    return n * factorialRecursive(n - 1);\n}\n\nconsole.log(factorialRecursive(5)); // Output: 120\n```\n\n### **Key Notes:**\n- **Base Case:** `0! = 1` and `1! = 1`.\n- **Edge Case:** Factorial is not defined for negative numbers.\n- **Recursion vs Iteration:**\n  - **Recursion** is elegant but may cause a stack overflow for very large `n`.\n  - **Iteration** is more efficient for large numbers.\n\nWould you like an optimized version (e.g., using memoization)? 😊',
-  solution_2:
-    "Certainly! Below is a JavaScript function to calculate the factorial of a given number using both iterative and recursive approaches.\n\n### Iterative Approach:\n```javascript\nfunction factorialIterative(n) {\n    if (n < 0) return undefined; // Factorial is not defined for negative numbers\n    let result = 1;\n    for (let i = 1; i <= n; i++) {\n        result *= i;\n    }\n    return result;\n}\n\n// Example usage:\nconsole.log(factorialIterative(5)); // Output: 120\n```\n\n### Recursive Approach:\n```javascript\nfunction factorialRecursive(n) {\n    if (n < 0) return undefined; // Factorial is not defined for negative numbers\n    if (n === 0 || n === 1) return 1;\n    return n * factorialRecursive(n - 1);\n}\n\n// Example usage:\nconsole.log(factorialRecursive(5)); // Output: 120\n```\n\n### Explanation:\n- **Iterative Approach**: Uses a loop to multiply numbers from 1 to `n`.\n- **Recursive Approach**: Calls itself with `n-1` until it reaches the base case (`n === 0` or `n === 1`), then multiplies the results back up the call stack.\n\nBoth functions handle the edge case where `n` is negative by returning `undefined`, as factorial is not defined for negative numbers.\n\nChoose the approach that best fits your needs!",
-  judge: {
-    solution_1_score: 9,
-    solution_2_score: 8.5,
-    solution_1_reasoning:
-      "Solution 1 provides a very comprehensive answer. It includes both iterative and recursive approaches with correct logic. It handles negative numbers (the edge case) and the base cases (0 and 1) correctly. The 'Key Notes' section adds significant value by explaining the pros and cons of recursion versus iteration (mentioning stack overflow). While returning a string for the negative edge case is less standard than returning NaN or undefined in a production environment, it is helpful for a general explanation.",
-    solution_2_reasoning:
-      "Solution 2 is also correct and provides both approaches. It uses 'undefined' for the negative number edge case, which is generally better programming practice than returning a string. However, it is slightly less detailed than Solution 1, lacking the explicit mention of stack overflow risks or the specific performance benefit of the iterative approach. The iterative loop starts at 1, which is correct but slightly less optimized than starting at 2.",
-  },
+const MODELS_REGISTRY = {
+  google: [
+    { id: "gemini-3-flash", label: "Gemini 3 Flash" },
+    { id: "gemini-3.1-pro", label: "Gemini 3.1 Pro" },
+  ],
+  mistral: [
+    { id: "mistral-small-4", label: "Mistral Small 4" },
+    { id: "mistral-large-3", label: "Mistral Large 3" },
+    { id: "devstral-2", label: "Devstral 2 (Code)" },
+  ],
+  cohere: [
+    { id: "command-a", label: "Command A" },
+    { id: "command-r", label: "Command R" },
+  ],
 };
 
 const App = () => {
@@ -27,6 +26,16 @@ const App = () => {
   const [loading, setLoading] = useState(false);
   const inputRef = useRef(null);
 
+  // Standardized State Names
+  const [model1, setModel1] = useState({
+    provider: "google",
+    name: "gemini-3-flash",
+  });
+  const [model2, setModel2] = useState({
+    provider: "mistral",
+    name: "mistral-small-4",
+  });
+
   const handleBattle = async () => {
     if (!problem.trim() || loading) return;
 
@@ -34,18 +43,13 @@ const App = () => {
     setResult(null);
 
     try {
-      // TODO: replace with real API call:
-      // const res = await fetch("/api/battle", { method: "POST", body: JSON.stringify({ problem }), headers: { "Content-Type": "application/json" } });
-      // const data = await res.json();
-
       const response = await axios.post("http://localhost:3000/invoke", {
         input: problem,
+        m1: model1, // Matches backend: const { input, m1, m2 } = req.body;
+        m2: model2,
       });
-      const data = response.data;
 
-      console.log(data.result);
-
-      setResult(data.result);
+      setResult(response.data.result);
       setProblem("");
     } catch (err) {
       console.error("Battle failed:", err);
@@ -63,108 +67,146 @@ const App = () => {
 
   return (
     <div className="arena-root">
-      {/* Header */}
       <header className="arena-header">
         <div className="header-brand">
           <span className="header-title">⚔️ AI Battle Arena</span>
-          <span className="header-subtitle">Two AIs. One Winner.</span>
         </div>
+
         <div className="live-badge">
-          <span className="live-dot" />
-          Live Battle
+          <span className="live-dot" /> Live Battle
         </div>
       </header>
 
-      {/* Main 3-col grid */}
+      {/* Model Selection UI */}
+      <div className="flex items-center justify-around bg-white/5 rounded border h-18 border-white/10">
+        {/* Model 1 Selector */}
+        <div className="flex flex-col ">
+          <span className="text-[18px] uppercase text-blue-400 font-bold mb-1">
+            Fighter 1
+          </span>
+          <div className="flex gap-2">
+            <select
+              className="bg-zinc-900 text-xs border h-8 w-20 border-zinc-700 rounded px-1"
+              value={model1.provider}
+              onChange={(e) =>
+                setModel1({
+                  provider: e.target.value,
+                  name: MODELS_REGISTRY[e.target.value][0].id,
+                })
+              }
+            >
+              {Object.keys(MODELS_REGISTRY).map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+            <select
+              className="bg-zinc-900 text-xs border border-zinc-700 rounded px-1"
+              value={model1.name}
+              onChange={(e) => setModel1({ ...model1, name: e.target.value })}
+            >
+              {MODELS_REGISTRY[model1.provider].map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="text-zinc-500 italic font-black text-sm">VS</div>
+
+        {/* Model 2 Selector */}
+        <div className="flex flex-col">
+          <span className="text-[18px] uppercase text-green-400 font-bold mb-1">
+            Fighter 2
+          </span>
+          <div className="flex gap-2">
+            <select
+              className="bg-zinc-900 h-8 w-20 text-xs border border-zinc-700 rounded px-1"
+              value={model2.provider}
+              onChange={(e) =>
+                setModel2({
+                  provider: e.target.value,
+                  name: MODELS_REGISTRY[e.target.value][0].id,
+                })
+              }
+            >
+              {Object.keys(MODELS_REGISTRY).map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+            <select
+              className="bg-zinc-900 text-xs border border-zinc-700 rounded px-1"
+              value={model2.name}
+              onChange={(e) => setModel2({ ...model2, name: e.target.value })}
+            >
+              {MODELS_REGISTRY[model2.provider].map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
       <main className="arena-body">
-        {/* Solution 1 — Model Alpha */}
         <SolutionPanel
-          title="Model 1 "
+          title={`Model 1 (${model1.name})`}
           icon="🤖"
           nameClass="panel-name-alpha"
           panelClass="panel-alpha"
           score={result?.judge?.solution_1_score}
-          scoreClass="score-alpha"
           content={result?.solution_1}
           loading={loading}
-          emptyIcon="🤖"
-          emptyLabel="Awaiting problem"
+          emptyLabel="Awaiting Fighter 1..."
         />
 
-        {/* Judge — center */}
         <JudgePanel
           judge={result?.judge}
           loading={loading}
           hasResult={!!result}
         />
 
-        {/* Solution 2 — Model Beta */}
         <SolutionPanel
-          title="Model 2"
+          title={`Model 2 (${model2.name})`}
           icon="🤖"
           nameClass="panel-name-beta"
           panelClass="panel-beta"
           score={result?.judge?.solution_2_score}
-          scoreClass="score-beta"
           content={result?.solution_2}
           loading={loading}
-          emptyIcon="🤖"
-          emptyLabel="Awaiting problem"
+          emptyLabel="Awaiting Fighter 2..."
         />
       </main>
 
-      {/* Input bar */}
       <footer className="arena-footer">
         {result?.problem && (
-          <div
-            style={{
-              marginBottom: 8,
-              fontSize: "0.72rem",
-              color: "var(--text-muted)",
-              letterSpacing: "0.06em",
-            }}
-          >
-            <span style={{ color: "var(--primary)", marginRight: 6 }}>▶</span>
-            {result.problem}
+          <div className="history-hint">
+            <span className="text-blue-500 mr-2">▶</span> {result.problem}
           </div>
         )}
         <div className="input-bar">
           <input
-            id="problem-input"
             ref={inputRef}
             className="problem-input"
             type="text"
-            placeholder="Enter your coding problem… (e.g. Write a binary search in Python)"
+            placeholder="Challenge the AIs... (e.g. Write a regex to validate emails in JS)"
             value={problem}
             onChange={(e) => setProblem(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={loading}
-            autoComplete="off"
           />
           <button
-            id="battle-btn"
             className="battle-btn"
             onClick={handleBattle}
             disabled={loading || !problem.trim()}
           >
-            {loading ? (
-              <>
-                <span
-                  style={{
-                    display: "inline-block",
-                    width: 12,
-                    height: 12,
-                    border: "2px solid rgba(255,255,255,0.3)",
-                    borderTopColor: "#fff",
-                    borderRadius: "50%",
-                    animation: "spin 0.7s linear infinite",
-                  }}
-                />
-                Battling…
-              </>
-            ) : (
-              <>⚡ Battle!</>
-            )}
+            {loading ? "⚔️ Battling..." : "⚡ Battle!"}
           </button>
         </div>
       </footer>
