@@ -1,5 +1,9 @@
 import app from "./src/app.js";
+import config from "./src/config/config.js";
 
-app.listen(3000, () => {
-  console.log("server is running on port 3000");
+const PORT = Number(config.PORT) || 3000;
+
+// 2. Explicitly listen on '0.0.0.0'
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server is running on port ${PORT}`);
 });
