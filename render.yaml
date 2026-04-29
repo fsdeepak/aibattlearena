@@ -4,8 +4,8 @@ services:
     name: my-app-backend
     runtime: docker
     plan: free
-    dockerContext: ./backend
-    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./Backend
+    dockerfilePath: ./Backend/Dockerfile
 
     envVars:
       - key: PORT
@@ -22,8 +22,8 @@ services:
     name: my-app-frontend
     runtime: docker
     plan: free
-    dockerContext: ./frontend
-    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./Frontend
+    dockerfilePath: ./Frontend/Dockerfile
 
     envVars:
       - key: PORT
