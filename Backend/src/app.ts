@@ -8,15 +8,7 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST"],
-    credentials: true,
-  }),
-);
-
-app.post("/invoke", async (req, res) => {
+app.post("/api/invoke", async (req, res) => {
   const { input, m1, m2 } = req.body;
 
   if (!input) {
@@ -38,7 +30,7 @@ app.post("/invoke", async (req, res) => {
       success: true,
       result,
     });
-  } catch (error) {
+  } catch (error: any) {
     // 3. Log the error for debugging (In production, you'd use LangSmith/Sentry)
     console.error("[Arena Error]:", error?.message);
 

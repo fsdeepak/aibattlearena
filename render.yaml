@@ -1,0 +1,36 @@
+services:
+  # --- Backend Service ---
+  - type: web
+    name: my-app-backend
+    runtime: docker
+    plan: free
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    dockerBuildTarget: production
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: GOOGLE_API_KEY
+        sync: false # Set the real value in the Render Dashboard
+      - key: MISTRAL_API_KEY
+        sync: false # Set the real value in the Render Dashboard
+      - key: COHERE_API_KEY
+        sync: false # Set the real value in the Render Dashboard
+
+  # --- Frontend Service (Nginx) ---
+  - type: web
+    name: my-app-frontend
+    runtime: docker
+    plan: free
+    dockerContext: ./frontend
+    dockerfilePath: ./frontend/Dockerfile
+    dockerBuildTarget: production
+    envVars:
+      - key: PORT
+        value: 80
+      # Corrected: This is a NEW environment variable for your API connection
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: my-app-backend
+          property: host

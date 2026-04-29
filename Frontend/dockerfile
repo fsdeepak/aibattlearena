@@ -1,0 +1,23 @@
+# --- STAGE 1: Base (Install Dependencies) ---
+FROM node:20-alpine AS base
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm install
+
+# --- STAGE 2: Development (For local work) ---
+FROM base AS development
+COPY . .
+EXPOSE 5173
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+
+# --- STAGE 3: Builder (For Production) ---
+FROM base AS builder
+COPY . .
+RUN npm run build
+
+# --- STAGE 4: Production (Nginx) ---
+FROM nginx:stable-alpine AS production
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/dist /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

@@ -3,6 +3,9 @@
 # =========================
 node_modules/
 
+.dockerignore/
+npm-debug.log/
+
 # =========================
 # Environment Variables (Secrets)
 # =========================

@@ -6,17 +6,17 @@ import axios from "axios";
 
 const MODELS_REGISTRY = {
   google: [
-    { id: "gemini-3-flash", label: "Gemini 3 Flash" },
-    { id: "gemini-3.1-pro", label: "Gemini 3.1 Pro" },
+    { id: "gemini-3-flash-preview", label: "Gemini 3 Flash" }, // Added -preview
+    { id: "gemini-3.1-pro-preview", label: "Gemini 3.1 Pro" }, // Added -preview
   ],
   mistral: [
-    { id: "mistral-small-4", label: "Mistral Small 4" },
-    { id: "mistral-large-3", label: "Mistral Large 3" },
-    { id: "devstral-2", label: "Devstral 2 (Code)" },
+    { id: "mistral-small-latest", label: "Mistral Small 4" },
+    { id: "mistral-large-latest", label: "Mistral Large 3" },
+    { id: "devstral-2512", label: "Devstral 2 (Code)" },
   ],
   cohere: [
     { id: "command-a", label: "Command A" },
-    { id: "command-r", label: "Command R" },
+    { id: "command-r-08-2024", label: "Command R (Legacy)" },
   ],
 };
 
@@ -29,11 +29,11 @@ const App = () => {
   // Standardized State Names
   const [model1, setModel1] = useState({
     provider: "google",
-    name: "gemini-3-flash",
+    name: "gemini-3-flash-preview",
   });
   const [model2, setModel2] = useState({
     provider: "mistral",
-    name: "mistral-small-4",
+    name: "mistral-small-latest",
   });
 
   const handleBattle = async () => {
@@ -43,7 +43,7 @@ const App = () => {
     setResult(null);
 
     try {
-      const response = await axios.post("http://localhost:3000/invoke", {
+      const response = await axios.post("/api/invoke", {
         input: problem,
         m1: model1, // Matches backend: const { input, m1, m2 } = req.body;
         m2: model2,

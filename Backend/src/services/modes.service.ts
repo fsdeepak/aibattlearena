@@ -7,12 +7,12 @@ export const modelFactory = (provider: any, modelName: any) => {
   switch (provider) {
     case "mistral":
       return new ChatMistralAI({
-        model: modelName || "mistral-small-4", // Latest 2026 Unified Model
+        model: modelName || "mistral-small-latest", // Latest 2026 Unified Model
         apiKey: config.MISTRAL_API_KEY,
       });
     case "google":
       return new ChatGoogle({
-        model: modelName || "gemini-3-flash",
+        model: modelName || "gemini-3-flash-preview",
         apiKey: config.GEMINI_API_KEY,
       });
     case "cohere":
@@ -29,6 +29,6 @@ export const modelFactory = (provider: any, modelName: any) => {
 };
 
 export const judgeModel = new ChatGoogle({
-  model: "gemini-3.1-pro-preview",
+  model: "gemini-3-flash-preview",
   apiKey: config.GEMINI_API_KEY,
 });
