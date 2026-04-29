@@ -6,7 +6,7 @@ services:
     plan: free
     dockerContext: ./backend
     dockerfilePath: ./backend/Dockerfile
-    dockerTarget: production
+
     envVars:
       - key: PORT
         value: 3000
@@ -24,7 +24,7 @@ services:
     plan: free
     dockerContext: ./frontend
     dockerfilePath: ./frontend/Dockerfile
-    dockerTarget: production
+
     envVars:
       - key: PORT
         value: 80
