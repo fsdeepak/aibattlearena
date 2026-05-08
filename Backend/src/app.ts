@@ -1,12 +1,20 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import runGraph from "./services/graph.service.js";
-import cors from "cors";
+import { trackingMiddleware } from "./middleware/tracker.js";
 
 const app = express();
 
+app.use(trackingMiddleware);
 app.use(express.json());
 app.use(cookieParser());
+
+app.get("/", async (req, res) => {
+  return res.status(200).json({
+    success: true,
+    message: "Server is running successfully.",
+  });
+});
 
 app.post("/api/invoke", async (req, res) => {
   const { input, m1, m2 } = req.body;
